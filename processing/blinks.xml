@@ -81,7 +81,7 @@
 		</Box>
 		<Box>
 			<Identifier>(0x178570ca, 0x5d257714)</Identifier>
-			<Name>range/median</Name>
+			<Name>variance/range</Name>
 			<AlgorithmClassIdentifier>(0x54f0796d, 0x3ede2cc0)</AlgorithmClassIdentifier>
 			<Inputs>
 				<Input>
@@ -143,6 +143,10 @@
 				<Attribute>
 					<Identifier>(0xc46b3d00, 0x3e0454e1)</Identifier>
 					<Value>(0x00000000, 0x014f0520)</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0xc67a01dc, 0x28ce06c1)</Identifier>
+					<Value></Value>
 				</Attribute>
 				<Attribute>
 					<Identifier>(0xc73e83ec, 0xf855c5bc)</Identifier>
@@ -344,6 +348,10 @@
 					<Value>(0x0d4656c0, 0xc95b1fa8)</Value>
 				</Attribute>
 				<Attribute>
+					<Identifier>(0x8d21ff41, 0xdf6afe7e)</Identifier>
+					<Value>${__volatile_ScenarioDir}/config_acquisition_client_openbci.conf</Value>
+				</Attribute>
+				<Attribute>
 					<Identifier>(0xad100179, 0xa3c984ab)</Identifier>
 					<Value>126</Value>
 				</Attribute>
@@ -367,7 +375,7 @@
 		</Box>
 		<Box>
 			<Identifier>(0x36687c63, 0x5cdf1cd2)</Identifier>
-			<Name>range/median</Name>
+			<Name>variance/range</Name>
 			<AlgorithmClassIdentifier>(0x00e26fa1, 0x1dbab1b2)</AlgorithmClassIdentifier>
 			<Inputs>
 				<Input>
@@ -421,7 +429,7 @@
 				</Attribute>
 				<Attribute>
 					<Identifier>(0xad100179, 0xa3c984ab)</Identifier>
-					<Value>102</Value>
+					<Value>110</Value>
 				</Attribute>
 				<Attribute>
 					<Identifier>(0xc46b3d00, 0x3e0454e1)</Identifier>
