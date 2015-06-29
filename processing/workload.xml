@@ -401,7 +401,7 @@
 					<TypeIdentifier>(0x007deef9, 0x2f3e95c6)</TypeIdentifier>
 					<Name>Epoch count</Name>
 					<DefaultValue>4</DefaultValue>
-					<Value>10</Value>
+					<Value>20</Value>
 					<Modifiability>false</Modifiability>
 				</Setting>
 			</Settings>
