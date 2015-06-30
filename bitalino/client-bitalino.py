@@ -8,8 +8,8 @@ import timeit
 from bitalino import BITalino
 
 
-#macAddress = "98:D3:31:B2:12:01"
-macAddress = "98:D3:31:70:3D:CE"
+macAddress = "98:D3:31:B2:12:01"
+#macAddress = "98:D3:31:70:3D:CE"
 batteryThreshold = 30
 acqChannels = [0,1,2,3,4,5]
 defaultChannel=4;

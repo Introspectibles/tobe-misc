@@ -1,0 +1,5 @@
+
+Using home-made cap, with electrodes positions being approximatively: O1;P7;F7;FP1;F8;T8;P8;O2
+
+T7:ref
+FP2: ground
