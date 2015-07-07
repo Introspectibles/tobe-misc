@@ -17,7 +17,7 @@ Computer 3, software:
 
 * tested with kubuntu 14.04 and kubuntu 13.10 x64
     * dependencies: python-bluez (bitalino client)
-* OpenViBE 1.0
+* OpenViBE 1.0.1
 
 ### DHCP server
 
