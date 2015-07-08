@@ -17,9 +17,9 @@ class MyOVBox(OVBox):
       self.timeBuffer = list()
       self.signalBuffer = None
       self.signalHeader = None
-      self.IBIvalue = 1.
-      self.BPMvalue = 1./self.IBIvalue*60
-      self.lastStimDate = -1
+      self.BPMvalue = 200.
+      self.IBIvalue = 1./self.BPMvalue*60
+      self.lastStimDate = 0
       self.newStimDate = 0
 
    # this time we also re-define the initialize method to directly prepare the header and the first data chunk
@@ -79,34 +79,41 @@ class MyOVBox(OVBox):
    
    # called by process each loop or by trigger when got new stimulation;  update IBI/BPM
    def updateValues(self):
-     BPMvalue = self.BPMvalue
-     # when called by trigger()
-     if self.newStimDate != self.lastStimDate:
-       BPMvalue = 1./(self.newStimDate - self.lastStimDate)*60
-       # safeguard, if too short
-       self.lastStimDate = self.newStimDate
-       
-     # safeguard, if too long
-     if self.maxVariation >=0:
+     print
+     # safeguard, if too long since we got a new stim
+     if self.newStimDate == self.lastStimDate and self.maxVariation >=0:
        print "laststim", self.lastStimDate, ", new:", self.newStimDate
-       nextStim = self.lastStimDate + 1./(BPMvalue-BPMvalue*self.maxVariation/100)*60
+       print "varBPM: ",self.BPMvalue-self.maxVariation*self.IBIvalue
+       nextStim = self.lastStimDate + 1./(self.BPMvalue-self.maxVariation*self.IBIvalue)*60
        print "nextstim: ", nextStim
        if self.getCurrentTime() >= nextStim:
          self.newStimDate = self.getCurrentTime()
-         BPMvalue = 1./(self.newStimDate - self.lastStimDate)*60
-         self.lastStimDate = self.newStimDate
-         print "safe guard long! ", self.getCurrentTime(), " BPM: ", BPMvalue
+         print "safe guard long! ", self.getCurrentTime(), " BPM: ", self.BPMvalue
+         
+     
+     # safeguard, if too short
+     if self.maxVariation >=0:
+       nextStim = self.lastStimDate + 1./(self.BPMvalue+self.maxVariation/self.IBIvalue)*60
+       print "nextstim early: ", nextStim
+       if self.newStimDate != self.lastStimDate and self.newStimDate < nextStim:
+         print "too early!"
+         self.newStimDate = nextStim
+    
+     # either by trigger or automatically, got new stim
+     if self.newStimDate != self.lastStimDate and self.newStimDate<=self.getCurrentTime():
+       self.BPMvalue = 1./(self.newStimDate - self.lastStimDate)*60
+       self.lastStimDate = self.newStimDate
+       print "new BPM: ", self.BPMvalue
      
      # safeguards for min/max
-     if self.minBPM >= 0 and BPMvalue < self.minBPM:
-       BPMvalue = self.minBPM
-     if self.maxBPM >= 0 and BPMvalue > self.maxBPM:
-       BPMvalue = self.maxBPM
+     if self.minBPM >= 0 and self.BPMvalue < self.minBPM:
+       self.BPMvalue = self.minBPM
+     if self.maxBPM >= 0 and self.BPMvalue > self.maxBPM:
+       self.BPMvalue = self.maxBPM
        
      # update internal state
-     self.BPMvalue = BPMvalue
      if self.BPMvalue != 0:
-       self.IBIvalue = 1./BPMvalue*60
+       self.IBIvalue = 1./self.BPMvalue*60
      else:
        self.IBIvalue = 0
      
