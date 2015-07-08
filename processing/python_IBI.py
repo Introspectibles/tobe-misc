@@ -21,12 +21,21 @@ class MyOVBox(OVBox):
       self.IBIvalue = 1./self.BPMvalue*60
       self.lastStimDate = 0
       self.newStimDate = 0
+      self.debug = False
 
    # this time we also re-define the initialize method to directly prepare the header and the first data chunk
    def initialize(self):
-      # one channel for min, another for max
+      # one channel for IBI, another for BPM
       self.channelCount = 2
-           
+      
+      # try get debug flag from GUI
+      try:
+        debug = (self.setting['Debug']=="true")
+      except:
+        print "Couldn't find debug flag"
+      else:
+        self.debug=debug
+        
       # settings are retrieved in the dictionary
       self.samplingFrequency = int(self.setting['Sampling frequency'])
       self.epochSampleCount = int(self.setting['Generated epoch sample count'])
@@ -73,7 +82,8 @@ class MyOVBox(OVBox):
 
    # called by process for each stim reiceived; update timestamp of last stim
    def trigger(self, stim):
-     print "Got stim: ", stim.identifier, " date: ", stim.date, " duration: ", stim.duration
+     if self.debug:
+       print "Got stim: ", stim.identifier, " date: ", stim.date, " duration: ", stim.duration
      self.newStimDate = stim.date
      self.updateValues()
    
@@ -88,7 +98,8 @@ class MyOVBox(OVBox):
        #nextStim = self.lastStimDate + 1.
        if self.getCurrentTime() >= nextStim:
          self.newStimDate = nextStim
-         print "safe guard long! "
+         if self.debug:
+           print "safe guard long!"
      
      # safeguard, if too short
      if self.maxVariation >=0:
@@ -96,14 +107,16 @@ class MyOVBox(OVBox):
        newBPM = self.BPMvalue + self.maxVariation * lapse
        nextStim = self.lastStimDate + 60./newBPM
        if self.newStimDate != self.lastStimDate and self.newStimDate < nextStim:
-         print "safe guard early! "
          self.newStimDate = nextStim
+         if self.debug:
+           print "safe guard early!"
     
      # either by trigger or automatically, got new stim
      if self.newStimDate != self.lastStimDate and self.newStimDate<=self.getCurrentTime():
        self.BPMvalue = 1./(self.newStimDate - self.lastStimDate)*60
        self.lastStimDate = self.newStimDate
-       #print "new BPM: ", self.BPMvalue
+       if self.debug:
+         print "new BPM: ", self.BPMvalue
      
      # safeguards for min/max
      if self.minBPM >= 0 and self.BPMvalue < self.minBPM:
