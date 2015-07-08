@@ -19,6 +19,7 @@ class MyOVBox(OVBox):
       self.signalBuffer = None
       self.signalHeader = None
       self.BPMvalue = 60.
+      self.realBPM = self.BPMvalue
       self.IBIvalue = 1./self.BPMvalue*60
       # Code if a beat is detected / produced
       # -1: no beat
@@ -28,6 +29,7 @@ class MyOVBox(OVBox):
       self.beatValue = -1
       self.lastStimDate = 0
       self.newStimDate = 0
+      self.lastBeatDate = 0
       self.debug = False
 
    # this time we also re-define the initialize method to directly prepare the header and the first data chunk
@@ -95,49 +97,68 @@ class MyOVBox(OVBox):
      if self.debug:
        print "Got stim: ", stim.identifier, " date: ", stim.date, " duration: ", stim.duration
      self.newStimDate = stim.date
-     self.beatValue = 1
    
    # called by process each loop or by trigger when got new stimulation;  update IBI/BPM
    def updateValues(self):
-     #self.beatValue = -1
-     # safeguard, if too long since we got a new stim
-     if self.newStimDate == self.lastStimDate and self.maxVariation >=0:
-       # interpolate next BPM
-       lapse = self.getCurrentTime() - self.lastStimDate
-       newBPM = self.BPMvalue - self.maxVariation * lapse
-       nextStim = self.lastStimDate + 60./newBPM
-       #nextStim = self.lastStimDate + 1.
-       if self.getCurrentTime() >= nextStim:
-         self.newStimDate = nextStim
-         self.beatValue = 2
-         if self.debug:
-           print "safe guard long!"
-     
-     # safeguard, if too short
-     if self.maxVariation >=0:
-       lapse = self.getCurrentTime() - self.lastStimDate
-       newBPM = self.BPMvalue + self.maxVariation * lapse
-       nextStim = self.lastStimDate + 60./newBPM
-       if self.newStimDate != self.lastStimDate and self.newStimDate < nextStim:
-         self.newStimDate = nextStim
-         self.beatValue = 3
-         if self.debug:
-           print "safe guard early!"
-    
-     # either by trigger or automatically, got new stim
-     if self.newStimDate != self.lastStimDate and self.newStimDate<=self.getCurrentTime():
-       self.BPMvalue = 1./(self.newStimDate - self.lastStimDate)*60
+     trueBeat = False # remember genuine beat for beatValue
+     # a new beat has beat triggered
+     if self.newStimDate != self.lastStimDate:
+       self.realBPM = 1./(self.newStimDate - self.lastStimDate)*60
        self.lastStimDate = self.newStimDate
-       self.signalBuffer[2,self.curEpoch] = self.beatValue
-       if self.debug:
-         print "new BPM: ", self.BPMvalue
-     
+       trueBeat = True
+     # crossed IBI, real BPM starts to decrease
+     elif self.lastStimDate + 1./self.realBPM*60 < self.getCurrentTime():
+       self.realBPM = 1./(self.getCurrentTime() - self.lastStimDate)*60
+     # set bottom/top BPM depending on variation
+     newBPMslow = self.realBPM
+     newBPMfast = self.realBPM
+     if self.maxVariation >=0:
+       # using time since last beat to make BPM crops linear
+       lapse = self.getCurrentTime() - self.lastBeatDate
+       newBPMslow = self.BPMvalue - self.maxVariation * lapse
+       newBPMfast = self.BPMvalue + self.maxVariation * lapse
      # safeguards for min/max
-     if self.minBPM >= 0 and self.BPMvalue < self.minBPM:
-       self.BPMvalue = self.minBPM
-     if self.maxBPM >= 0 and self.BPMvalue > self.maxBPM:
-       self.BPMvalue = self.maxBPM
+     if newBPMslow < 0:
+       newBPMslow = 0
+     if newBPMslow < self.minBPM:
+       newBPMslow = self.minBPM
+     if newBPMslow > self.maxBPM:
+       newBPMslow = self.maxBPM
+     if newBPMfast < self.minBPM:
+       newBPMfast = self.minBPM
+     if newBPMfast > self.maxBPM:
+       newBPMfast = self.maxBPM
        
+     if self.debug:
+       print "oldBPM: ", self.BPMvalue,", realBPM: ", self.realBPM, ", newBPMslow: ", newBPMslow, " newBPMfast: ", newBPMfast
+     
+     # safeguard too fast, will wait for right time before a fake beat is produced
+     if self.realBPM > newBPMfast and newBPMfast>0:
+        if self.debug:
+          print "too fast"
+        nextBeatDate = self.lastBeatDate + 60./newBPMfast
+        if self.getCurrentTime() >= nextBeatDate:
+          self.lastBeatDate = self.getCurrentTime()
+          self.BPMvalue = newBPMfast
+          if self.debug:
+            print "correct fast"
+          self.beatValue = 3
+     # real beat in there, inside variation
+     elif self.realBPM >= newBPMslow:
+       if trueBeat:
+         self.lastBeatDate = self.newStimDate
+         self.BPMvalue = self.realBPM
+         self.beatValue = 1
+         if self.debug:
+           print "real beat"
+     # safeguard too slow
+     elif self.getCurrentTime() - self.lastBeatDate >= 1./newBPMslow*60:
+       self.BPMvalue = newBPMslow
+       self.lastBeatDate = self.getCurrentTime()
+       if self.debug:
+         print "correct slow"
+       self.beatValue = 2
+     
      # update internal state
      if self.BPMvalue != 0:
        self.IBIvalue = 1./self.BPMvalue*60
@@ -145,7 +166,7 @@ class MyOVBox(OVBox):
        self.IBIvalue = 0
      self.signalBuffer[0,self.curEpoch:] = self.IBIvalue
      self.signalBuffer[1,self.curEpoch:] = self.BPMvalue
-     
+     self.signalBuffer[2,self.curEpoch] = self.beatValue # value only for a beat
 
    # the process is straightforward
    def process(self):
@@ -176,6 +197,7 @@ class MyOVBox(OVBox):
       end = self.timeBuffer[-1]
       while self.curEpoch < self.epochSampleCount and self.getCurrentTime() >= self.timeBuffer[self.curEpoch]:
          self.curEpoch+=1
+         self.beatValue = -1
       # send IBI & BPM values      
       if self.getCurrentTime() >= end:
          # send buffer
