@@ -9,7 +9,8 @@ class MyOVBox(OVBox):
       OVBox.__init__(self)
       self.channelCount = 0
       self.samplingFrequency = 0
-      self.epochSampleCount = 0
+      self.epochSampleCount = 0 # should be a divider of self.timeBuffer!
+      self.curEpoch = 0
       self.startTime = 0.
       self.endTime = 0.
       self.dimensionSizes = list()
@@ -85,7 +86,6 @@ class MyOVBox(OVBox):
      if self.debug:
        print "Got stim: ", stim.identifier, " date: ", stim.date, " duration: ", stim.duration
      self.newStimDate = stim.date
-     self.updateValues()
    
    # called by process each loop or by trigger when got new stimulation;  update IBI/BPM
    def updateValues(self):
@@ -129,6 +129,8 @@ class MyOVBox(OVBox):
        self.IBIvalue = 1./self.BPMvalue*60
      else:
        self.IBIvalue = 0
+     self.signalBuffer[0,self.curEpoch:] = self.IBIvalue
+     self.signalBuffer[1,self.curEpoch:] = self.BPMvalue
      
 
    # the process is straightforward
@@ -155,16 +157,19 @@ class MyOVBox(OVBox):
       # in case we need to automatically change BPM 'cause of min/max
       self.updateValues()
          
-      ## send IBI & BPM values
+      # update timestamps
       start = self.timeBuffer[0]
       end = self.timeBuffer[-1]
+      while self.curEpoch < self.epochSampleCount and self.getCurrentTime() >= self.timeBuffer[self.curEpoch]:
+         self.curEpoch+=1
+      # send IBI & BPM values      
       if self.getCurrentTime() >= end:
          # send buffer
          self.sendSignalBufferToOpenvibe()
          self.updateStartTime()
          self.updateEndTime()
          self.updateTimeBuffer()
-         self.updateSignalBuffer()
+         self.curEpoch = 0
 
    # this time we also re-define the uninitialize method to output the end chunk.
    def uninitialize(self):
