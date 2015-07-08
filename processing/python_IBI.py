@@ -34,7 +34,7 @@ class MyOVBox(OVBox):
       # safeguards (-1 to disable)
       self.minBPM = int(self.setting['Min BPM'])
       self.maxBPM = int(self.setting['Max BPM'])
-      # in percentage, max BPM variation between two seconds
+      # BPM variation between two seconds
       self.maxVariation = int(self.setting['Max variation'])
          
       #creation of the signal header
@@ -79,31 +79,31 @@ class MyOVBox(OVBox):
    
    # called by process each loop or by trigger when got new stimulation;  update IBI/BPM
    def updateValues(self):
-     print
      # safeguard, if too long since we got a new stim
      if self.newStimDate == self.lastStimDate and self.maxVariation >=0:
-       print "laststim", self.lastStimDate, ", new:", self.newStimDate
-       print "varBPM: ",self.BPMvalue-self.maxVariation*self.IBIvalue
-       nextStim = self.lastStimDate + 1./(self.BPMvalue-self.maxVariation*self.IBIvalue)*60
-       print "nextstim: ", nextStim
+       # interpolate next BPM
+       lapse = self.getCurrentTime() - self.lastStimDate
+       newBPM = self.BPMvalue - self.maxVariation * lapse
+       nextStim = self.lastStimDate + 60./newBPM
+       #nextStim = self.lastStimDate + 1.
        if self.getCurrentTime() >= nextStim:
-         self.newStimDate = self.getCurrentTime()
-         print "safe guard long! ", self.getCurrentTime(), " BPM: ", self.BPMvalue
-         
+         self.newStimDate = nextStim
+         print "safe guard long! "
      
      # safeguard, if too short
      if self.maxVariation >=0:
-       nextStim = self.lastStimDate + 1./(self.BPMvalue+self.maxVariation/self.IBIvalue)*60
-       print "nextstim early: ", nextStim
+       lapse = self.getCurrentTime() - self.lastStimDate
+       newBPM = self.BPMvalue + self.maxVariation * lapse
+       nextStim = self.lastStimDate + 60./newBPM
        if self.newStimDate != self.lastStimDate and self.newStimDate < nextStim:
-         print "too early!"
+         print "safe guard early! "
          self.newStimDate = nextStim
     
      # either by trigger or automatically, got new stim
      if self.newStimDate != self.lastStimDate and self.newStimDate<=self.getCurrentTime():
        self.BPMvalue = 1./(self.newStimDate - self.lastStimDate)*60
        self.lastStimDate = self.newStimDate
-       print "new BPM: ", self.BPMvalue
+       #print "new BPM: ", self.BPMvalue
      
      # safeguards for min/max
      if self.minBPM >= 0 and self.BPMvalue < self.minBPM:
@@ -139,12 +139,13 @@ class MyOVBox(OVBox):
          elif(type(self.input[0][chunkIndex]) == OVStimulationEnd):
            self.input[0].pop()
 
+      # in case we need to automatically change BPM 'cause of min/max
+      self.updateValues()
+         
       ## send IBI & BPM values
       start = self.timeBuffer[0]
       end = self.timeBuffer[-1]
       if self.getCurrentTime() >= end:
-         # in case we need to automatically change BPM 'cause of min/max
-         self.updateValues()
          # send buffer
          self.sendSignalBufferToOpenvibe()
          self.updateStartTime()
