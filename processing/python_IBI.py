@@ -18,16 +18,22 @@ class MyOVBox(OVBox):
       self.timeBuffer = list()
       self.signalBuffer = None
       self.signalHeader = None
-      self.BPMvalue = 200.
+      self.BPMvalue = 60.
       self.IBIvalue = 1./self.BPMvalue*60
+      # Code if a beat is detected / produced
+      # -1: no beat
+      # 1: from external stim
+      # 2: guard too long
+      # 3: guard too short
+      self.beatValue = -1
       self.lastStimDate = 0
       self.newStimDate = 0
       self.debug = False
 
    # this time we also re-define the initialize method to directly prepare the header and the first data chunk
    def initialize(self):
-      # one channel for IBI, another for BPM
-      self.channelCount = 2
+      # one channel for IBI, another for BPM, last for beat
+      self.channelCount = 3
       
       # try get debug flag from GUI
       try:
@@ -49,7 +55,8 @@ class MyOVBox(OVBox):
          
       #creation of the signal header
       self.dimensionLabels.append('IBI') 
-      self.dimensionLabels.append('BPM') 
+      self.dimensionLabels.append('BPM')
+      self.dimensionLabels.append('beat') 
       self.dimensionLabels += self.epochSampleCount*['']
       self.dimensionSizes = [self.channelCount, self.epochSampleCount]
       self.signalHeader = OVSignalHeader(0., 0., self.dimensionSizes, self.dimensionLabels, self.samplingFrequency)
@@ -59,7 +66,7 @@ class MyOVBox(OVBox):
       self.endTime = 1.*self.epochSampleCount/self.samplingFrequency
       self.signalBuffer = numpy.zeros((self.channelCount, self.epochSampleCount))
       self.updateTimeBuffer()
-      self.updateSignalBuffer()
+      self.resetSignalBuffer()
     
    def updateStartTime(self):
       self.startTime += 1.*self.epochSampleCount/self.samplingFrequency
@@ -70,9 +77,11 @@ class MyOVBox(OVBox):
    def updateTimeBuffer(self):
       self.timeBuffer = numpy.arange(self.startTime, self.endTime, 1./self.samplingFrequency)
 
-   def updateSignalBuffer(self):
+   # fill buffer upon new epoch
+   def resetSignalBuffer(self):
       self.signalBuffer[0,:] = self.IBIvalue
       self.signalBuffer[1,:] = self.BPMvalue
+      self.signalBuffer[2,:] = -1
 
    def sendSignalBufferToOpenvibe(self):
       start = self.timeBuffer[0]
@@ -86,9 +95,11 @@ class MyOVBox(OVBox):
      if self.debug:
        print "Got stim: ", stim.identifier, " date: ", stim.date, " duration: ", stim.duration
      self.newStimDate = stim.date
+     self.beatValue = 1
    
    # called by process each loop or by trigger when got new stimulation;  update IBI/BPM
    def updateValues(self):
+     #self.beatValue = -1
      # safeguard, if too long since we got a new stim
      if self.newStimDate == self.lastStimDate and self.maxVariation >=0:
        # interpolate next BPM
@@ -98,6 +109,7 @@ class MyOVBox(OVBox):
        #nextStim = self.lastStimDate + 1.
        if self.getCurrentTime() >= nextStim:
          self.newStimDate = nextStim
+         self.beatValue = 2
          if self.debug:
            print "safe guard long!"
      
@@ -108,6 +120,7 @@ class MyOVBox(OVBox):
        nextStim = self.lastStimDate + 60./newBPM
        if self.newStimDate != self.lastStimDate and self.newStimDate < nextStim:
          self.newStimDate = nextStim
+         self.beatValue = 3
          if self.debug:
            print "safe guard early!"
     
@@ -115,6 +128,7 @@ class MyOVBox(OVBox):
      if self.newStimDate != self.lastStimDate and self.newStimDate<=self.getCurrentTime():
        self.BPMvalue = 1./(self.newStimDate - self.lastStimDate)*60
        self.lastStimDate = self.newStimDate
+       self.signalBuffer[2,self.curEpoch] = self.beatValue
        if self.debug:
          print "new BPM: ", self.BPMvalue
      
@@ -153,10 +167,10 @@ class MyOVBox(OVBox):
          # useless?
          elif(type(self.input[0][chunkIndex]) == OVStimulationEnd):
            self.input[0].pop()
-
+           
       # in case we need to automatically change BPM 'cause of min/max
       self.updateValues()
-         
+      
       # update timestamps
       start = self.timeBuffer[0]
       end = self.timeBuffer[-1]
@@ -169,6 +183,7 @@ class MyOVBox(OVBox):
          self.updateStartTime()
          self.updateEndTime()
          self.updateTimeBuffer()
+         self.resetSignalBuffer()
          self.curEpoch = 0
 
    # this time we also re-define the uninitialize method to output the end chunk.
