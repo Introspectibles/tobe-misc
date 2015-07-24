@@ -68,4 +68,5 @@ Breathing and ECG require an OpenBCI board for each subject, see `sensors` folde
 
 Start accordingly 2 OpenViBE acquisition servers, set right ports in `config_acquisition_client_openbci.conf` and `configure config_acquisition_client_openbci_2.conf`.
 
-Finally, launch `./processing/coherence_openbci_first.xml`, `./processing/coherence_openbci_second.xml` and `./processing/coherence_sync.xml` to process data and feed to augmentation.
+Finally, launch `./processing/coherence_openbci_first.xml`, `./processing/coherence_openbci_second.xml` and `./processing/coherence_sync.xml` to process data and feed to augmentation. First 2 to compute coherence for each subject, last one to compute a "sync" index, correlation between both heart rates.
+
