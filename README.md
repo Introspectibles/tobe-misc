@@ -3,15 +3,17 @@ meegi
 
 Toolkit for exploration of physiological signals onto tangible avatar representations
 
-## How-to -- Augmentation
+## Public exhibition
+
+### How-to -- Augmentation
 
 * computer 1, ?? patch
 
-## How-to -- GUI
+### How-to -- GUI
 
 * computer 2, ?? patch
 
-## How-to -- signals
+### How-to -- signals
 
 Computer 3, software:
 
@@ -19,7 +21,7 @@ Computer 3, software:
     * dependencies: python-bluez (bitalino client)
 * OpenViBE 1.0.1
 
-### DHCP server
+#### DHCP server
 
 The computer processing bitalino and openbci serves as a DHCP server on the local network. Set a *fixed* IP address, eg `192.168.200.2` and configure `/etc/dhcp/dhcpd.conf`:
 
@@ -40,7 +42,7 @@ LSL need multicast, enable this with:
 
 > route add -net 224.0.0.0/4 dev eth0
 
-### Signal acquisition and signal processing
+#### Signal acquisition and signal processing
 
 Bitalino:
 
@@ -53,3 +55,17 @@ OpenBCI:
 
 * should work out of the box with the dongle, directly start OpenViBE acquisiton server with the right serial port selected (and the rights on it!). Select port 1025, same parameters as for bitalino (see `./processing/EEG_electrodes.txt` for electrodes placement).
 * open OpenViBE designer and run `attention.xml`, `workload.xml`, `valence.xml`, `relax.xml`, `blinks.xml` and `muscle_noise.xml` (!)
+
+## 2-users scenario
+
+### Augmentation
+
+?
+
+### Signal acquisition and signal processing
+
+Breathing and ECG require an OpenBCI board for each subject, see `sensors` folder.
+
+Start accordingly 2 OpenViBE acquisition servers, set right ports in `config_acquisition_client_openbci.conf` and `configure config_acquisition_client_openbci_2.conf`.
+
+Finally, launch `./processing/coherence_openbci_first.xml`, `./processing/coherence_openbci_second.xml` and `./processing/coherence_sync.xml` to process data and feed to augmentation.
