@@ -24,23 +24,39 @@ void setup() {
   pixels.setBrightness(25);// Set maximum overall brightness
 }
 
-void loop() {
+void idle() {
   // middle pixel
   int led = NUMPIXELS/2;
-  // going up
-   for (int time = 0; time <= period; time = time + delayval) {
-     int color = map(time, 0, 2000, 0, 255);
-     color = constrain(color, 0, 255);
-     pixels.setPixelColor(led, color, color,color); 
-     pixels.show();
-     delay(delayval); // Delay for a period of time (in milliseconds).
-   }
-   // going down
-   for (int time = period; time >= 0; time = time - delayval) {
-     int color = map(time, 0, 2000, 0, 255);
-     color = constrain(color, 0, 255);
-     pixels.setPixelColor(led, color, color,color);
-     pixels.show();
-     delay(delayval); // Delay for a period of time (in milliseconds).
-   }
+  static int time = 0;
+  
+  static bool up = true;
+  
+  // inhale / exhale
+  if (up) {
+    time = time + delayval;
+    // time to reverse animation
+    if (time >= period) {
+      time = period;
+      up = false;
+    }
+  }
+  else {
+    time = time - delayval;
+    if (time <= 0) {
+      time = 0;
+      up = true;
+    }
+  }
+  
+  // compute correspoding color and set it
+  int color = map(time, 0, 2000, 0, 255);
+  color = constrain(color, 0, 255);
+  pixels.setPixelColor(led, color, color,color);
+  pixels.show();
+  delay(delayval); // Delay for a period of time (in milliseconds).
+  
+}
+
+void loop() {
+  idle();
 }
