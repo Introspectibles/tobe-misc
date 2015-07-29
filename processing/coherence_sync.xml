@@ -2350,10 +2350,6 @@
 					<Value>(0x00000000, 0x00613098)</Value>
 				</Attribute>
 				<Attribute>
-					<Identifier>(0xc67a01dc, 0x28ce06c1)</Identifier>
-					<Value></Value>
-				</Attribute>
-				<Attribute>
 					<Identifier>(0xc73e83ec, 0xf855c5bc)</Identifier>
 					<Value>false</Value>
 				</Attribute>
@@ -3464,7 +3460,7 @@
 					<TypeIdentifier>(0x512a166f, 0x5c3ef83f)</TypeIdentifier>
 					<Name>Max variation</Name>
 					<DefaultValue>-1</DefaultValue>
-					<Value>20</Value>
+					<Value>30</Value>
 					<Modifiability>false</Modifiability>
 				</Setting>
 				<Setting>
@@ -3515,6 +3511,10 @@
 				<Attribute>
 					<Identifier>(0xc46b3d00, 0x3e0454e1)</Identifier>
 					<Value>(0x00000000, 0x02d8c2a1)</Value>
+				</Attribute>
+				<Attribute>
+					<Identifier>(0xc67a01dc, 0x28ce06c1)</Identifier>
+					<Value></Value>
 				</Attribute>
 				<Attribute>
 					<Identifier>(0xc73e83ec, 0xf855c5bc)</Identifier>
@@ -3597,7 +3597,7 @@
 					<TypeIdentifier>(0x512a166f, 0x5c3ef83f)</TypeIdentifier>
 					<Name>Max variation</Name>
 					<DefaultValue>-1</DefaultValue>
-					<Value>20</Value>
+					<Value>30</Value>
 					<Modifiability>false</Modifiability>
 				</Setting>
 				<Setting>
