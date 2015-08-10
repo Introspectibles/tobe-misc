@@ -64,6 +64,8 @@ OpenBCI:
 
 ### Signal acquisition and signal processing
 
+FIXME: absolute path for lib lsl
+
 Breathing and ECG require an OpenBCI board for each subject, see `sensors` folder.
 
 Start accordingly 2 OpenViBE acquisition servers, set right ports in `config_acquisition_client_openbci.conf` and `configure config_acquisition_client_openbci_2.conf`.

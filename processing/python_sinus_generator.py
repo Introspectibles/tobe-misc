@@ -2,6 +2,7 @@
 import numpy
 
 # Sinus generator from OpenViBE tutorial, here we can set the frequency of the mother wave (1st channel), the frequency of others will be a multiple (by 2, 3, and so on).
+# values between 0 and 1
 
 class MyOVBox(OVBox):
    def __init__(self):
@@ -52,7 +53,7 @@ class MyOVBox(OVBox):
 
    def updateSignalBuffer(self):
       for rowIndex, row in enumerate(self.signalBuffer):
-         self.signalBuffer[rowIndex,:] = 100.*numpy.sin( 2.*numpy.pi*(rowIndex+1.)*self.sinusFrequency*self.timeBuffer )
+         self.signalBuffer[rowIndex,:] = numpy.sin( 2.*numpy.pi*(rowIndex+1.)*self.sinusFrequency*self.timeBuffer )/2 + 0.5
 
    def sendSignalBufferToOpenvibe(self):
       start = self.timeBuffer[0]

@@ -2,11 +2,12 @@ import numpy, sys, os
 from math import ceil
 # retrieve LSL library compiled by OpenViBE
 # FIXME: not working??
-ov_lib_path = os.getcwd() + "/../dependencies/lib/"
-sys.path.append(ov_lib_path)
+#ov_lib_path = os.getcwd() + "./lib_ov/"
+#sys.path.append(ov_lib_path)
+# FIXME absolute path to point to pylsl.py & liblsl.so
+sys.path.append("/home/jfrey/phymo/repo/meegi/processing/lib_ov/")
 
-# FIXME absolute path to point to pylsl.py
-sys.path.append("/home/jfrey/bluff_game/ov_lsl/lib")
+
 
 from pylsl import StreamInlet, resolve_stream
 
