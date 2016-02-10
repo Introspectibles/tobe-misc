@@ -3,7 +3,7 @@ meegi
 
 Toolkit for exploration of physiological signals onto tangible avatar representations
 
-Will be eventually splitted.
+Will be eventually splitted between https://github.com/conphyture/ and https://github.com/introceptibles/
 
 ## Public exhibition
 
