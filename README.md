@@ -3,6 +3,8 @@ meegi
 
 Toolkit for exploration of physiological signals onto tangible avatar representations
 
+Will be eventually splitted.
+
 ## Public exhibition
 
 ### How-to -- Augmentation
