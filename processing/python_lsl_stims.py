@@ -5,7 +5,7 @@ from math import ceil
 #ov_lib_path = os.getcwd() + "./lib_ov/"
 #sys.path.append(ov_lib_path)
 # FIXME absolute path to point to pylsl.py & liblsl.so
-sys.path.append("/home/jfrey/phymo/repo/meegi/processing/lib_ov/")
+sys.path.append("/home/jfrey/introspectibles/tobe-misc/processing/lib_ov/")
 
 
 
